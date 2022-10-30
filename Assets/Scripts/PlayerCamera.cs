@@ -16,6 +16,7 @@ public class PlayerCamera : MonoBehaviour
     private Vector2 _lookInput;
     private Vector2 _rotation;
     private PlayerMovement _playerMovement;
+    private Vector3 _playerOffset;
     
     // references
     private Camera _camera;
@@ -25,6 +26,7 @@ public class PlayerCamera : MonoBehaviour
     {
         _rotation = new (transform.rotation.x, transform.rotation.y);
         _playerMovement = player.GetComponent<PlayerMovement>();
+        _playerOffset =  transform.position - player.transform.position;
     }
 
     void Update()
@@ -40,7 +42,7 @@ public class PlayerCamera : MonoBehaviour
     void LateUpdate()
     {
         transform.rotation = Quaternion.Euler(_rotation.x, _rotation.y, 0);
-        transform.position = player.transform.position;
+        transform.position = player.transform.position + _playerOffset;
         _playerMovement.orientation.rotation = Quaternion.Euler(0, _rotation.y, 0);
     }
 }
