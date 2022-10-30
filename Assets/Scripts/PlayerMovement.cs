@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -5,10 +6,12 @@ using UnityEngine.InputSystem;
 
 public class PlayerMovement : MonoBehaviour
 {
-    
+
     public float walkSpeed;
     public float runSpeed;
+    public float acceleration;
     public float airMoveSpeed;
+    public float timeToStop;
     
     public float jumpForce;
     public float gravity = -9.81f;
@@ -18,9 +21,11 @@ public class PlayerMovement : MonoBehaviour
 
     // component state
     private Vector2 _moveInput;
+    public Vector2 lookInput;
     private bool _isRunning = false;
     private Vector3 _velocity;
     private bool _jumpedThisFrame;
+    private float _secondsSinceLastMoveInput;
 
     // references
     private CharacterController _controller;
@@ -35,6 +40,7 @@ public class PlayerMovement : MonoBehaviour
     public void OnMove(InputValue input)
     {
         _moveInput = input.Get<Vector2>();
+        _secondsSinceLastMoveInput = 0;
     }
 
     public void OnRun(InputValue input)
@@ -47,28 +53,38 @@ public class PlayerMovement : MonoBehaviour
         _jumpedThisFrame = true;
     }
 
+    public void OnLook(InputValue input)
+    {
+        lookInput = input.Get<Vector2>();
+    }
+
     // Update is called once per frame
     void Update()
     {
-        
-        Vector3 newVelocity; 
+        var newVelocity = _controller.velocity; 
         if (_controller.isGrounded)
         {
-            var speed = (_isRunning ? runSpeed : walkSpeed);
-            newVelocity = (_moveInput.y * speed * orientation.forward) + (_moveInput.x * speed * orientation.right);
-            
+            var maxSpeed = (_isRunning ? runSpeed : walkSpeed);
+            var move = ((_moveInput.y * orientation.forward) + (_moveInput.x * orientation.right)) * maxSpeed;
+            newVelocity = move;
+        
             if (_jumpedThisFrame)
             {
                 _jumpedThisFrame = false;
-                newVelocity.y += jumpForce * gravity;
+                newVelocity.y += jumpForce;
             }
         }
         else
         {
-            newVelocity = new(_velocity.x, gravity, _velocity.z);
+            var newFallingSpeed = _controller.velocity.y - gravity * Time.deltaTime;
+            newVelocity = new Vector3(_velocity.x, newFallingSpeed, _velocity.z);
         }
 
-        _controller.Move(newVelocity * Time.deltaTime);
-        _velocity = _controller.velocity;
+        _velocity = newVelocity;
+        _controller.Move(_velocity * Time.deltaTime);
+    }
+
+    private void FixedUpdate()
+    {
     }
 }
