@@ -70,7 +70,6 @@ public class PlayerMovement : MonoBehaviour
         
             if (_jumpedThisFrame)
             {
-                _jumpedThisFrame = false;
                 newVelocity.y += jumpForce;
             }
         }
@@ -81,6 +80,7 @@ public class PlayerMovement : MonoBehaviour
         }
 
         _velocity = newVelocity;
+        _jumpedThisFrame = false;
         _controller.Move(_velocity * Time.deltaTime);
     }
 
